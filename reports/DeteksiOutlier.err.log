@@ -1,0 +1,106 @@
+Traceback (most recent call last):
+  File "/usr/local/python/3.12.1/lib/python3.12/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/home/codespace/.local/lib/python3.12/site-packages/nbclient/client.py", line 1319, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/codespace/.local/lib/python3.12/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python/3.12.1/lib/python3.12/asyncio/base_events.py", line 684, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/codespace/.local/lib/python3.12/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/home/codespace/.local/lib/python3.12/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/codespace/.local/lib/python3.12/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import psycopg2
+import pymysql
+import pandas as pd
+from tabulate import tabulate
+
+# Koneksi ke database PostgreSQL
+PG_HOST = "pg-2e640ec9-rahmatullayli123-d892.h.aivencloud.com"
+PG_PORT = "21028"
+PG_NAME = "defaultdb"
+PG_USER = "avnadmin"
+PG_PASS = "AVNS_93PD-YH-4mlx5toeFU3"
+
+# Konfigurasi koneksi ke database MySQL
+DB_HOST = "mysql-309c3d6e-mysqlirispendata7.h.aivencloud.com"
+DB_PORT = 26958
+DB_NAME = "iris_mysql"
+DB_USER = "avnadmin"
+DB_PASS = "AVNS_krNRWz9TOsAjruawhm3"
+
+try:
+    # Koneksi PostgreSQL
+    conn = psycopg2.connect(
+        host=PG_HOST, port=PG_PORT, dbname=PG_NAME,
+        user=PG_USER, password=PG_PASS, sslmode="require"
+    )
+    cur = conn.cursor()
+
+    # Ambil data dari PostgreSQL (ID, Class, Sepal Length, Sepal Width)
+    cur.execute("SELECT * FROM sepal;")  # Sesuaikan tabel
+    pg_rows = cur.fetchall()
+    pg_columns = [desc[0] for desc in cur.description]
+    pg_df = pd.DataFrame(pg_rows, columns=pg_columns)
+
+    # Koneksi MySQL
+    mysql_conn = pymysql.connect(
+        host=DB_HOST, port=DB_PORT, user=DB_USER,
+        password=DB_PASS, database=DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    mysql_cur = mysql_conn.cursor()
+
+    # Ambil data dari MySQL (ID, Petal Length, Petal Width)
+    mysql_cur.execute("SELECT * FROM petal;")  # Sesuaikan tabel
+    mysql_rows = mysql_cur.fetchall()
+    mysql_df = pd.DataFrame(mysql_rows)
+
+    # Menggabungkan kedua tabel berdasarkan ID
+    combined_df = pd.merge(pg_df, mysql_df, on=["id","class"], how="inner")  # Inner join
+
+    # Mengatur urutan kolom agar class berada di sebelah ID
+    ordered_columns = ["id", "class", "sepal_length", "sepal_width", "petal_length", "petal_width"]
+    combined_df = combined_df[ordered_columns]
+
+    # Mengurutkan data berdasarkan ID
+    combined_df = combined_df.sort_values(by="id").reset_index(drop=True)
+
+    # Menampilkan 3 data awal, tanda "..." di tengah, dan 3 data akhir
+    df_selected = pd.concat([
+        combined_df.head(30),
+        pd.DataFrame([["..."] * len(combined_df.columns)], columns=combined_df.columns),
+        combined_df.tail(30)
+    ])
+    # Menampilkan hasil dalam format tabel
+    print(tabulate(df_selected, headers="keys", tablefmt="psql", showindex=False))
+
+except Exception as e:
+    print("Error:", e)
+
+finally:
+    # Menutup koneksi
+    if cur:
+        cur.close()
+    if conn:
+        conn.close()
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mModuleNotFoundError[39m                       Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[2][39m[32m, line 1[39m
+[32m----> [39m[32m1[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01mpsycopg2[39;00m
+[32m      2[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01mpymysql[39;00m
+[32m      3[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01mpandas[39;00m[38;5;250m [39m[38;5;28;01mas[39;00m[38;5;250m [39m[34;01mpd[39;00m
+
+[31mModuleNotFoundError[39m: No module named 'psycopg2'
+
