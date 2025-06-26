@@ -1,11 +1,12 @@
-
 import streamlit as st
-import pickle
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 
-# Load model
-with open("wine_model.pkl", "rb") as f:
-    model = pickle.load(f)
+# Buat model dummy (langsung dilatih di dalam aplikasi)
+X_dummy = np.random.rand(10, 11)
+y_dummy = ['low', 'medium', 'high', 'medium', 'low', 'high', 'low', 'medium', 'high', 'low']
+model = RandomForestClassifier()
+model.fit(X_dummy, y_dummy)
 
 st.title("🍷 Wine Quality Predictor")
 st.markdown("Masukkan fitur-fitur kimia wine di bawah ini:")
@@ -26,7 +27,7 @@ alcohol = st.number_input("Alcohol", min_value=0.0, step=0.1)
 # Prediksi
 if st.button("Prediksi Kualitas"):
     features = np.array([[fixed_acidity, volatile_acidity, citric_acid,
-                         residual_sugar, chlorides, free_sulfur_dioxide,
-                         total_sulfur_dioxide, density, pH, sulphates, alcohol]])
+                          residual_sugar, chlorides, free_sulfur_dioxide,
+                          total_sulfur_dioxide, density, pH, sulphates, alcohol]])
     prediction = model.predict(features)[0]
     st.success(f"Prediksi kualitas wine: {prediction.upper()}")
